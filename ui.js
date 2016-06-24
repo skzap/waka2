@@ -1,3 +1,4 @@
+var WakaConfig = require('./config.json')
 var Ractive = require( 'ractive' )
 Ractive.DEBUG = false
 var markdown = require( "markdown" ).markdown
@@ -102,7 +103,8 @@ Waka.UI = {
     })
   },
   createFromWiki: function() {
-    var searchTitle = $('#search>input').val()
+    var params = window.location.hash.split('#')
+    var searchTitle = params[1]
     var wiki = Waka.Templates.Article.get('wiki')
     if (wiki.title.toLowerCase() != searchTitle.toLowerCase())
       Waka.UI.addNewRedirect(searchTitle, wiki.title)
@@ -114,6 +116,13 @@ Waka.UI = {
       Waka.UI.addNewArticle(wiki.title, wiki.extract, null, null, function() {
         Waka.UI.displayAndSearch(wiki.title, true)
       })
+  },
+  createBlankArticle: function() {
+    var params = window.location.hash.split('#')
+    var title = params[1]
+    Waka.UI.addNewArticle(title, '', null, null, function() {
+      Waka.UI.displayAndSearch(title, true)
+    })
   },
   switchEditMode: function() {
     Waka.Templates.Article.set('edit', !Waka.Templates.Article.get('edit'))
@@ -218,6 +227,8 @@ Waka.UI = {
     params = window.location.hash.split('#')
     if (params[1]) {
       Waka.UI.resetDisplaySearch(params[1])
+    } else {
+      window.location.hash = '#' + WakaConfig.DefaultArticle
     }
   },
   resetDisplaySearch: function(title) {
@@ -283,7 +294,8 @@ Waka.Templates.Article.on({
   compareVariant: Waka.UI.compareVariant,
   previewVariant: Waka.UI.previewVariant,
   adoptVariant: Waka.UI.adoptVariant,
-  downloadVariant: Waka.UI.downloadVariant
+  downloadVariant: Waka.UI.downloadVariant,
+  createBlankArticle: Waka.UI.createBlankArticle
 })
 
 $(window).on('hashchange', function() {

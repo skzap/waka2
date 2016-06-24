@@ -1,1 +1,4 @@
 node_modules
+config.json
+output/bundle.js
+output/index.html

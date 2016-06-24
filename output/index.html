@@ -5,7 +5,6 @@
     <title>Wakapedia</title>
   </head>
   <body>
-    <h1>Welcome on Wakapedia!</h1>
     <form id='search'>
       <input type='text' name='title' placeholder='Search' />
     </form>
@@ -80,7 +79,9 @@
         </p>
       </div>
     {{else}}
+      <br /><br />
       Searching for the article ...
+      <button on-click='createBlankArticle'>Create it!</button>
     {{/if}}
   {{/if}}
 {{/unless}}
