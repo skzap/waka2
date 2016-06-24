@@ -12,7 +12,7 @@ var serverOptions = {
     allow_discovery: true
 }
 
-var server = app.listen(3000)
+var server = app.listen(80)
 console.log('Signalling server online')
 app.use(express.static('public'))
 app.use('/peerjs', ExpressPeerServer(server, serverOptions))
