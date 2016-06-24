@@ -1,0 +1,32 @@
+{
+  "name": "waka",
+  "version": "0.0.1",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "concat-files": "^0.1.0",
+    "express": "^4.14.0",
+    "jshashes": "^1.0.5",
+    "markdown": "^0.5.0",
+    "minimongo": "^3.8.2",
+    "peer": "^0.2.8",
+    "peerjs": "^0.3.14",
+    "ractive": "^0.7.3",
+    "winston": "^2.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skzap/waka2.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/skzap/waka2/issues"
+  },
+  "homepage": "https://github.com/skzap/waka2#readme"
+}

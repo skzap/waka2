@@ -12,7 +12,7 @@ var serverOptions = {
     allow_discovery: true
 }
 
-var server = app.listen(3000)
+var server = app.listen(80)
 app.use(express.static('public'))
 app.use('/peerjs', ExpressPeerServer(server, serverOptions))
 app.use('/', express.static('output'));
