@@ -1,5 +1,6 @@
 // this server serves the html app
 // also runs the peer js connection broker server
+var WakaConfig = require('./config.json')
 var winston = require('winston')
 winston.add(winston.transports.File, { filename: 'logs.log' });
 var express = require('express')
@@ -12,7 +13,7 @@ var serverOptions = {
     allow_discovery: true
 }
 
-var server = app.listen(80)
+var server = app.listen(WakaConfig.PeerServer.port)
 console.log('Signalling server online')
 app.use(express.static('public'))
 app.use('/peerjs', ExpressPeerServer(server, serverOptions))
