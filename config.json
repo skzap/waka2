@@ -1,0 +1,12 @@
+{
+	"PeerServer": {
+		"host": "89.2.60.104",
+		"port": 3000,
+		"path": "/peerjs",
+		"debug": false
+	},
+	"PeerOptions": {
+    "debug": false,
+    "allow_discovery": true
+	}
+}

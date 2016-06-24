@@ -1,0 +1,14 @@
+<script id='tNetwork' type='text/ractive'>
+  {{#if connected}}
+    Connected. Peers: {{connected}} | Id: {{myId}}
+    <br />
+    <select id='networkArticles'>
+    <option>Article in your network</option>
+    {{#articles:i}}
+      <option>{{this}}</option>
+    {{/articles}}
+    </select>
+  {{else}}
+    You are not connected to the wakapedia network.
+  {{/if}}
+</script>
