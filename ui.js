@@ -1,7 +1,7 @@
 var WakaConfig = require('./config.json')
 var Ractive = require( 'ractive' )
 Ractive.DEBUG = false
-var markdown = require( "markdown" ).markdown
+var marked = require('marked')
 require('./wikipedia-api.js')
 
 Waka.Templates = {
@@ -42,7 +42,9 @@ Waka.UI = {
           WikipediaApi.getExtract(title, function(err, res) {
             for (var key in res.pages) {
               if (res.pages[key].missing == '') break
-              res.pages[key].extractHtml = markdown.toHTML(res.pages[key].extract)
+              res.pages[key].extract = WikipediaApi.convertWikiToMd(res.pages[key].extract)
+              res.pages[key].extract = WikipediaApi.addLinks(res.pages[key].extract, res.pages[key].links, [title])
+              res.pages[key].extractHtml = Waka.UI.WakaSyntax(res.pages[key].extract)
               Waka.Templates.Article.set('wiki', res.pages[key])
               if (res.pages[key].title.toLowerCase() != title.toLowerCase()) {
                 Waka.UI.displayAndSearch(res.pages[key].title, true)
@@ -217,7 +219,6 @@ Waka.UI = {
   downloadVariant: function(event) {
     Waka.memory.Search.upsert({variant: event.context._id, origin:Waka.c.id})
     Waka.memory.Peers.find({'index._id': event.context._id},{}).fetch(function(peers){
-      console.log(peers)
       for (var i = 0; i < peers.length; i++) {
         Waka.c.messageToPeer(peers[i]._id, {c:'download', data: {_id:event.context._id, origin: Waka.c.id}})
       }
@@ -236,26 +237,27 @@ Waka.UI = {
     Waka.UI.displayAndSearch(title)
   },
   WakaSyntax: function(content) {
-    var contentHtml = markdown.toHTML(content)
+    //var contentHtml = marked(content)
+    var contentCopy = content
     // extra syntax
 		// [[ ]] Double matching brackets wiki style
 		var words = []
 		var wordsMarkdown = []
-		while (content.indexOf('[[') > -1 && content.indexOf(']]') > -1) {
-			words.push(content.substring(content.indexOf('[['), content.indexOf(']]')+2))
-			content = content.substr(content.indexOf(']]')+2)
+		while (contentCopy.indexOf('[[') > -1 && contentCopy.indexOf(']]') > -1) {
+			words.push(contentCopy.substring(contentCopy.indexOf('[['), contentCopy.indexOf(']]')+2))
+			contentCopy = contentCopy.substr(contentCopy.indexOf(']]')+2)
 		}
 		for (var i = 0; i < words.length; i++) {
 			if (words[i].indexOf('|') > -1) {
 				var link = words[i].substring(2, words[i].indexOf('|'))
 				var display = words[i].substring(words[i].indexOf('|')+1, words[i].length-2)
-				wordsMarkdown.push('<a href="#'+link+'">'+display+'</a>')
+				wordsMarkdown.push('['+display+'](#'+link+')')
 			}
 			else
-				wordsMarkdown.push('<a href="#'+words[i].substring(2, words[i].length-2)+'">'+words[i].substring(2, words[i].length-2)+'</a>')
-			contentHtml = contentHtml.replace(words[i], wordsMarkdown[i])
+				wordsMarkdown.push('['+words[i].substring(2, words[i].length-2)+'](#'+words[i].substring(2, words[i].length-2)+')')
+			content = content.replace(words[i], wordsMarkdown[i])
 		}
-    return contentHtml
+    return marked(content)
   },
   RefreshNetwork: function() {
     Waka.memory.Peers.find({},{}).fetch(function(res){

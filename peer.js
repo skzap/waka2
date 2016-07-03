@@ -75,7 +75,6 @@ function handshakePeer(conn) {
 					if (!search) return
 					for (var i = 0; i < res.data.length; i++) {
 						if (res.data[i].title == search.title) {
-							console.log('test')
 							Waka.c.messageToPeer(conn.peer, {c:'search', data: {title:search.title, origin:Waka.c.id} })
 						}
 					}
