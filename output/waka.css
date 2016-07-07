@@ -3,3 +3,25 @@ body {
   font-family: sans-serif;
   line-height: 150%;
 }
+
+a:link    {
+  /* Applies to all unvisited links */
+  text-decoration:  none;
+  color:            #2A5DB0;
+}
+a:visited {
+  /* Applies to all visited links */
+  text-decoration:  none;
+  color:            #609;
+}
+a:hover   {
+  /* Applies to links under the pointer */
+  background-color: #2A5DB0;
+  color:            #fff;
+}
+a:active  {
+  /* Applies to activated links */
+  text-decoration:  underline;
+  background-color: #2A5DB0;
+  color: white;
+}
