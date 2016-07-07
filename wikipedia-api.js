@@ -38,7 +38,7 @@ WikipediaApi = {
       }
       if (titleType) wikiLines[i] = wikiLines[i].replace(/=/g, '#')
     }
-    return wikiLines.join('\n');
+    return wikiLines.join('\n\n');
   },
   addLinks: function(markdown, links, excludes) {
     var mdLowercase = markdown.toLowerCase()
