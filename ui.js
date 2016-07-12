@@ -233,9 +233,10 @@ Waka.UI = {
   checkUrlHash: function() {
     params = window.location.hash.split('#')
     if (params[1]) {
+      params[1] = params[1].replace(/_/g," ")
       Waka.UI.resetDisplaySearch(params[1])
     } else {
-      window.location.hash = '#' + WakaConfig.DefaultArticle
+      Waka.UI.GoToArticle(WakaConfig.DefaultArticle)
     }
   },
   resetDisplaySearch: function(title) {
@@ -278,12 +279,14 @@ Waka.UI = {
       }
       Waka.Templates.Network.set('articles', articles)
       $( "#networkArticles" ).change(function( event ) {
-        Waka.UI.NetworkArticle(event.target.value)
+        Waka.UI.GoToArticle(event.target.value)
       });
     })
   },
-  NetworkArticle: function(article) {
-    window.location.hash = '#' + article
+  GoToArticle: function(title) {
+    // converting spaces to underscores
+    title = title.replace(/ /g,"_")
+    window.location.hash = '#' + title
   },
   RemoveIframes: function() {
     var iframes = document.querySelectorAll('iframe');
@@ -295,7 +298,7 @@ Waka.UI = {
 
 // search feature
 $( "#search" ).submit(function( event ) {
-  window.location.hash = '#' + event.target.title.value
+  Waka.UI.GoToArticle(event.target.title.value)
   event.preventDefault();
 });
 
