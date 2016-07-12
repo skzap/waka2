@@ -100,6 +100,11 @@ Waka.UI = {
         cb()
       })
     })
+    // broadcasting our new hash for this article
+    Waka.c.broadcast({
+      c: 'indexchange',
+      data: {_id: article._id, title: article.title}
+    })
   },
   addNewRedirect: function(titleFrom, titleTo) {
     Waka.UI.addNewArticle(titleFrom, '[['+titleTo+']]', null, null, function(){

@@ -44,6 +44,21 @@ function savePeer(id, index) {
   Waka.UI.RefreshNetwork()
 }
 
+function updateIndex(id, indexRow) {
+	if (!Waka.memory.Peers || !Waka.memory.Peers.items || !Waka.memory.Peers.items[id].index) return false
+	var updated = false
+	for (var i = 0; i < Waka.memory.Peers.items[id].index.length; i++) {
+		if (Waka.memory.Peers.items[id].index[i].title == indexRow.title) {
+			Waka.memory.Peers.items[id].index[i]._id = indexRow._id
+			updated = true
+		}
+	}
+	if (!updated) {
+		Waka.memory.Peers.items[id].index.push(indexRow)
+		Waka.UI.RefreshNetwork()
+	}
+}
+
 function deletePeer(id) {
   Waka.memory.Peers.remove(id)
   Waka.UI.RefreshNetwork()
@@ -70,7 +85,7 @@ function handshakePeer(conn) {
 		console.log(conn.peer, res.c, res.data)
   	switch(res.c) {
 			case 'index':
-				// someone listing his index
+				// if he has an article we are searching for, sending search to him
 				Waka.memory.Search.findOne({origin: Waka.c.id}, {}, function(search) {
 					if (!search) return
 					for (var i = 0; i < res.data.length; i++) {
@@ -79,6 +94,7 @@ function handshakePeer(conn) {
 						}
 					}
 				})
+				// saving the index of the new peer
         savePeer(conn.peer, res.data)
   			break
 			case 'download':
@@ -159,6 +175,10 @@ function handshakePeer(conn) {
 						})
 					})
 	      })
+  			break
+			case 'indexchange':
+			  // someone updated a line of his index
+				updateIndex(conn.peer, res.data)
   			break
   	}
   })
