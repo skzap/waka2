@@ -64,6 +64,7 @@ Waka.UI = {
     // converting md to html
     article.contentHtml = Waka.UI.WakaSyntax(article.content)
     Waka.Templates.Article.set('article', article)
+    Waka.UI.RemoveIframes()
 
     // redirection
     if (article.content.substr(0,2) == '[[' && article.content.substr(article.content.length-2, 2) == ']]')
@@ -278,6 +279,12 @@ Waka.UI = {
   },
   NetworkArticle: function(article) {
     window.location.hash = '#' + article
+  },
+  RemoveIframes: function() {
+    var iframes = document.querySelectorAll('iframe');
+    for (var i = 0; i < iframes.length; i++) {
+        iframes[i].parentNode.removeChild(iframes[i]);
+    }
   }
 }
 
