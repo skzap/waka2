@@ -112,7 +112,7 @@ Waka.UI = {
   },
   createFromWiki: function() {
     var params = window.location.hash.split('#')
-    var searchTitle = params[1]
+    var searchTitle = params[1].replace(/_/g," ")
     var wiki = Waka.Templates.Article.get('wiki')
     if (wiki.title.toLowerCase() != searchTitle.toLowerCase())
       Waka.UI.addNewRedirect(searchTitle, wiki.title)
