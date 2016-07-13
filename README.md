@@ -17,11 +17,11 @@ Wakapedia.info is a decentralized and truly collaborative encyclopedia.
 
 - Install the latest node and npm
 - Clone this git repository and install the dependencies with npm
-
-    git clone https://github.com/skzap/waka2.git waka && cd waka && npm install
-
+```
+git clone https://github.com/skzap/waka2.git waka && cd waka && npm install
+```
 - Start the signalling server and web server (express)
-    
-    npm start
-
+```
+npm start
+```
 Finally, visit (http://localhost:3000/) in your browser. You can edit the host and port in the config.json file.
