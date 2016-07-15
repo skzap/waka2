@@ -97,6 +97,7 @@ Waka.UI = {
         Waka.db.Articles.remove(match._id)
       }
       Waka.db.Articles.upsert(article, function() {
+        Waka.UI.RefreshNetwork()
         cb()
       })
     })
@@ -278,6 +279,10 @@ Waka.UI = {
         }
       }
       Waka.Templates.Network.set('articles', articles)
+      var articles = []
+      Waka.db.Articles.find({},{fields: {_id:1, title: 1}}).fetch(function(res){
+        Waka.Templates.Network.set('myarticles', res)
+      })
       $( "#networkArticles" ).change(function( event ) {
         Waka.UI.GoToArticle(event.target.value)
       });

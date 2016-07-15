@@ -30,6 +30,3 @@ Waka.HashArticle = function(article) {
 require('./peer.js')
 // loading UI
 require('./ui.js')
-
-var os = require('os');
-document.write('You are running on ', os.platform());

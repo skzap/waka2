@@ -2,12 +2,16 @@
   {{#if connected}}
     Connected. Peers: {{connected}} | Id: {{myId}}
     <br />
-    <select id='networkArticles'>
-    <option>Article in your network</option>
-    {{#articles:i}}
-      <option>{{this}}</option>
-    {{/articles}}
-    </select>
+    <div class='simpleList'>
+      Network: {{#articles:i}}
+        <span><a href="#{{this}}">{{this}}</a></span>
+      {{/articles}}
+    </div>
+    <div class='simpleList'>
+      This device: {{#myarticles:i}}
+        <span><a href="#{{title}}">{{title}}</a></span>
+      {{/myarticles}}
+    </div>
   {{else}}
     You are not connected to the wakapedia network.
   {{/if}}
