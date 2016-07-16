@@ -18,14 +18,8 @@ Waka.memory.addCollection('Variants')
 // connecting to peer to peer
 Waka.c = new Peer(WakaConfig.PeerServer)
 
-Waka.HashArticle = function(article) {
-  var hash = new Hashes.MD5().hex(article.title)
-  hash += new Hashes.MD5().hex(article.content)
-  hash += new Hashes.MD5().hex(article.image)
-  article._id = new Hashes.MD5().hex(hash)
-  return article
-}
-
+// adding common functions to waka object
+require('./commons.js')
 // loading peer to peer network
 require('./peer.js')
 // loading UI

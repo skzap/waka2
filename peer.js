@@ -31,7 +31,7 @@ Waka.c.messageToPeer = function(peerId, message) {
 
 function savePeer(id, index) {
   Waka.memory.Peers.upsert({_id: id, index: index})
-  Waka.UI.RefreshNetwork()
+  Waka.Templates.Network.refresh()
 }
 
 function updateIndex(id, indexRow) {
@@ -45,13 +45,13 @@ function updateIndex(id, indexRow) {
 	}
 	if (!updated) {
 		Waka.memory.Peers.items[id].index.push(indexRow)
-		Waka.UI.RefreshNetwork()
+		Waka.Templates.Network.refresh()
 	}
 }
 
 function deletePeer(id) {
   Waka.memory.Peers.remove(id)
-  Waka.UI.RefreshNetwork()
+  Waka.Templates.Network.refresh()
 }
 
 function handshakePeer(conn) {
@@ -142,8 +142,8 @@ function handshakePeer(conn) {
 						Waka.memory.Search.remove(match._id, function() {
 							Waka.db.Articles.findOne({title: re},{},function(matchA) {
 								if (!matchA)
-									Waka.UI.addNewArticle(res.data.title, res.data.content, res.data.image, res.data._id, function() {
-										Waka.UI.refreshArticleTemplate(res.data)
+									Waka.AddNewArticle(res.data.title, res.data.content, res.data.image, res.data._id, function() {
+										Waka.Templates.Article.refreshArticleTemplate(res.data)
 									})
 								else {
 									Waka.memory.Variants.upsert(res.data, function() {
@@ -161,7 +161,7 @@ function handshakePeer(conn) {
 	        if (!search) return
 					Waka.memory.Search.remove(search._id, function() {
 						Waka.memory.Variants.upsert(res.data, function() {
-							Waka.UI.showVariants()
+							Waka.Templates.Article.showVariants()
 						})
 					})
 	      })
