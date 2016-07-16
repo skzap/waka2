@@ -233,6 +233,7 @@ Waka.UI = {
   },
   checkUrlHash: function() {
     params = window.location.hash.split('#')
+    if (params[1] && params[1].indexOf(' ') > -1)  Waka.UI.GoToArticle(params[1])
     if (params[1]) {
       params[1] = params[1].replace(/_/g," ")
       Waka.UI.resetDisplaySearch(params[1])
