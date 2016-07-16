@@ -9,10 +9,10 @@ require('./templates/network.js')
 
 // search feature
 $( "#search" ).submit(function( event ) {
-  Waka.Templates.Article.GoToArticle(event.target.title.value)
+  Waka.GoToArticle(event.target.title.value)
   event.preventDefault();
 });
 
 $(window).on('hashchange', function() {
-  Waka.Templates.Article.checkUrlHash()
+  Waka.CheckUrlHash()
 });

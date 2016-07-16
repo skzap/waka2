@@ -185,24 +185,9 @@ Waka.Templates.Article = new Ractive({
       }
     })
   },
-  checkUrlHash: function() {
-    params = window.location.hash.split('#')
-    if (params[1] && params[1].indexOf(' ') > -1)  Waka.Templates.Article.GoToArticle(params[1])
-    if (params[1]) {
-      params[1] = params[1].replace(/_/g," ")
-      Waka.Templates.Article.resetDisplaySearch(params[1])
-    } else {
-      Waka.Templates.Article.GoToArticle(WakaConfig.DefaultArticle)
-    }
-  },
   resetDisplaySearch: function(title) {
     Waka.Templates.Article.reset()
     Waka.Templates.Article.displayAndSearch(title)
-  },
-  GoToArticle: function(title) {
-    // converting spaces to underscores
-    title = title.replace(/ /g,"_")
-    window.location.hash = '#' + title
   },
   RemoveIframes: function() {
     var iframes = document.querySelectorAll('iframe');

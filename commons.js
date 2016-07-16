@@ -58,3 +58,18 @@ Waka.Syntax = function(content) {
   }
   return marked(content)
 }
+Waka.CheckUrlHash = function() {
+  params = window.location.hash.split('#')
+  if (params[1] && params[1].indexOf(' ') > -1)  Waka.GoToArticle(params[1])
+  if (params[1]) {
+    params[1] = params[1].replace(/_/g," ")
+    Waka.Templates.Article.resetDisplaySearch(params[1])
+  } else {
+    Waka.GoToArticle(WakaConfig.DefaultArticle)
+  }
+}
+Waka.GoToArticle = function(title) {
+  // converting spaces to underscores
+  title = title.replace(/ /g,"_")
+  window.location.hash = '#' + title
+}

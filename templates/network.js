@@ -21,12 +21,12 @@ Waka.Templates.Network = new Ractive({
         Waka.Templates.Network.set('myarticles', res)
       })
       $( "#networkArticles" ).change(function( event ) {
-        Waka.Templates.Article.GoToArticle(event.target.value)
+        Waka.GoToArticle(event.target.value)
       });
     })
   }
 })
 
 Waka.Templates.Network.observeOnce('connected', function(r,p){
-  if (r) Waka.Templates.Article.checkUrlHash()
+  if (r) Waka.CheckUrlHash()
 })
