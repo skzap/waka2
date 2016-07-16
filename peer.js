@@ -12,20 +12,10 @@ Waka.c.on('open', function(id) {
 // allowing people to connect to us
 Waka.c.on('connection', handshakePeer)
 
-Waka.c.broadcast = function(message) {
+Waka.c.broadcast = function(message, exceptions) {
 	Waka.memory.Peers.find({},{}).fetch(function(p){
     for (var i = 0; i < p.length; i++) {
-      for (var y = 0; y < Waka.c.connections[p[i]._id].length; y++) {
-        Waka.c.connections[p[i]._id][y].send(message)
-      }
-    }
-	})
-}
-
-Waka.c.broadcastExceptions = function(exceptions, message) {
-	Waka.memory.Peers.find({},{}).fetch(function(p){
-    for (var i = 0; i < p.length; i++) {
-			if (exceptions.indexOf(p[i]._id) > -1) break
+			if (exceptions && exceptions.indexOf(p[i]._id) > -1) break
       for (var y = 0; y < Waka.c.connections[p[i]._id].length; y++) {
         Waka.c.connections[p[i]._id][y].send(message)
       }
@@ -127,7 +117,7 @@ function handshakePeer(conn) {
 									if (!found && res.data.echo > 0 && res.data.echo < 3) {
 										// not found anywhere around, broadcasting search
 										res.data.echo--
-										Waka.c.broadcastExceptions([res.data.origin, conn.peer],res)
+										Waka.c.broadcast(res, [res.data.origin, conn.peer])
 									}
 							  })
 							} else {
