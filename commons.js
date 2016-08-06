@@ -1,4 +1,5 @@
 var marked = require('marked')
+var WakaConfig = require('./config.json')
 
 Waka.HashArticle = function(article) {
   var hash = new Hashes.MD5().hex(article.title)
