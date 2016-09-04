@@ -6,14 +6,9 @@ var app = express()
 var path    = require("path")
 var ExpressPeerServer = require('peer').ExpressPeerServer
 
-var serverOptions = {
-    debug: true,
-    allow_discovery: true
-}
-
 var server = app.listen(WakaConfig.PeerServer.port)
 console.log('Signalling server online')
-app.use('/peerjs', ExpressPeerServer(server, serverOptions))
+app.use('/peerjs', ExpressPeerServer(server, WakaConfig.PeerOptions))
 app.use('/', express.static('build'));
 
 
