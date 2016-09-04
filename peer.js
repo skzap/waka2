@@ -1,6 +1,6 @@
 // connecting to network and adding a bunch of peers
 Waka.c.on('open', function(id) {
-	Waka.Templates.Network.set('myId', Waka.c.id)
+	//Waka.Templates.Network.set('myId', Waka.c.id)
 	Waka.c.listAllPeers(function(p) {
 		for (var i = 0; i < p.length && i < 50; i++) {
 			if (Waka.c.id != p[i])
@@ -13,50 +13,49 @@ Waka.c.on('open', function(id) {
 Waka.c.on('connection', handshakePeer)
 
 Waka.c.broadcast = function(message, exceptions) {
-	Waka.memory.Peers.find({},{}).fetch(function(p){
+	Waka.mem.Peers.find({},{}).fetch(function(p){
     for (var i = 0; i < p.length; i++) {
 			if (exceptions && exceptions.indexOf(p[i]._id) > -1) break
-      for (var y = 0; y < Waka.c.connections[p[i]._id].length; y++) {
-        Waka.c.connections[p[i]._id][y].send(message)
-      }
+			Waka.c.messageToPeer(p[i]._id, message)
     }
 	})
 }
 
 Waka.c.messageToPeer = function(peerId, message) {
+	console.log('OUT', peerId, message.c, message.data)
   for (var y = 0; y < Waka.c.connections[peerId].length; y++) {
     Waka.c.connections[peerId][y].send(message)
   }
 }
 
 function savePeer(id, index) {
-  Waka.memory.Peers.upsert({_id: id, index: index})
-  Waka.Templates.Network.refresh()
+  Waka.mem.Peers.upsert({_id: id, index: index})
+  //Waka.Templates.Network.refresh()
 }
 
 function updateIndex(id, indexRow) {
-	if (!Waka.memory.Peers || !Waka.memory.Peers.items || !Waka.memory.Peers.items[id].index) return false
+	if (!Waka.mem.Peers || !Waka.mem.Peers.items || !Waka.mem.Peers.items[id].index) return false
 	var updated = false
-	for (var i = 0; i < Waka.memory.Peers.items[id].index.length; i++) {
-		if (Waka.memory.Peers.items[id].index[i].title == indexRow.title) {
-			Waka.memory.Peers.items[id].index[i]._id = indexRow._id
+	for (var i = 0; i < Waka.mem.Peers.items[id].index.length; i++) {
+		if (Waka.mem.Peers.items[id].index[i].title == indexRow.title) {
+			Waka.mem.Peers.items[id].index[i]._id = indexRow._id
 			updated = true
 		}
 	}
 	if (!updated) {
-		Waka.memory.Peers.items[id].index.push(indexRow)
-		Waka.Templates.Network.refresh()
+		Waka.mem.Peers.items[id].index.push(indexRow)
+		//Waka.Templates.Network.refresh()
 	}
 }
 
 function deletePeer(id) {
-  Waka.memory.Peers.remove(id)
-  Waka.Templates.Network.refresh()
+  Waka.mem.Peers.remove(id)
+  //Waka.Templates.Network.refresh()
 }
 
 function handshakePeer(conn) {
 	conn.on('open', function(){
-    Waka.memory.Peers.findOne({_id: conn.peer}, {}, function(match) {
+    Waka.mem.Peers.findOne({_id: conn.peer}, {}, function(match) {
       if (!match) savePeer(conn.peer)
     })
 
@@ -67,16 +66,16 @@ function handshakePeer(conn) {
 	})
 	conn.on('close', function(){
 		// may we meet again
-    Waka.memory.Peers.findOne({_id: conn.peer}, {}, function(match) {
+    Waka.mem.Peers.findOne({_id: conn.peer}, {}, function(match) {
       if (match) deletePeer(conn.peer)
     })
 	})
   conn.on('data', function(res){
-		console.log(conn.peer, res.c, res.data)
+		console.log('IN', conn.peer, res.c, res.data)
   	switch(res.c) {
 			case 'index':
 				// if he has an article we are searching for, sending search to him
-				Waka.memory.Search.findOne({origin: Waka.c.id}, {}, function(search) {
+				Waka.mem.Search.findOne({origin: Waka.c.id}, {}, function(search) {
 					if (!search) return
 					for (var i = 0; i < res.data.length; i++) {
 						if (res.data[i].title == search.title) {
@@ -94,15 +93,15 @@ function handshakePeer(conn) {
   			break
   		case 'search':
 				// someone is searching
-				Waka.memory.Search.findOne({title: res.data.title, origin: res.data.origin}, {}, function(match) {
+				Waka.mem.Search.findOne({title: res.data.title, origin: res.data.origin}, {}, function(match) {
 					if (!match) {
 						// we havent processed this search yet, doing so now
 						var re = new RegExp("^"+res.data.title+"$", 'i');
 						Waka.db.Articles.findOne({title: re},{}, function(art) {
 							if (!art) {
-								Waka.memory.Search.upsert({title: res.data.title, origin: res.data.origin})
+								Waka.mem.Search.upsert({title: res.data.title, origin: res.data.origin})
 								// not in our database, looking into our peer index
-								Waka.memory.Peers.find({},{}).fetch(function(p){
+								Waka.mem.Peers.find({},{}).fetch(function(p){
 									var found = false
 							    for (var i = 0; i < p.length; i++) {
 										if (!p[i].index) continue
@@ -122,10 +121,10 @@ function handshakePeer(conn) {
 							  })
 							} else {
 								// we got this
-								Waka.memory.Peers.findOne({_id: res.data.origin},{}, function(peerMatch) {
+								Waka.mem.Peers.findOne({_id: res.data.origin},{}, function(peerMatch) {
 									if (!peerMatch) handshakePeer(Waka.c.connect(res.data.origin))
 									else {
-										Waka.memory.Search.upsert({title: res.data.title, origin: res.data.origin})
+										Waka.mem.Search.upsert({title: res.data.title, origin: res.data.origin})
 										Waka.c.messageToPeer(res.data.origin, {c:'share', data: art})
 									}
 								})
@@ -137,16 +136,20 @@ function handshakePeer(conn) {
   		case 'share':
 			  // someone is sending us an article
 				var re = new RegExp("^"+res.data.title+"$", 'i');
-        Waka.memory.Search.findOne({title: re, origin: Waka.c.id}, {}, function(match) {
+        Waka.mem.Search.findOne({title: re, origin: Waka.c.id}, {}, function(match) {
           if (match) {
-						Waka.memory.Search.remove(match._id, function() {
+						Waka.mem.Search.remove(match._id, function() {
 							Waka.db.Articles.findOne({title: re},{},function(matchA) {
-								if (!matchA)
-									Waka.AddNewArticle(res.data.title, res.data.content, res.data.image, res.data._id, function() {
-										Waka.Templates.Article.refreshArticleTemplate(res.data)
+								if (!matchA) {
+									if (res.data._id !== Waka.api.Hash(res.data.title, res.data.content)._id){
+										console.log('Non-matching hash transmitted')
+										return
+									}
+									Waka.api.Set(res.data.title, res.data.content, function() {
+										//Waka.Templates.Article.refreshArticleTemplate(res.data)
 									})
-								else {
-									Waka.memory.Variants.upsert(res.data, function() {
+								}	else {
+									Waka.mem.Variants.upsert(res.data, function() {
 
 									})
 								}
@@ -157,10 +160,10 @@ function handshakePeer(conn) {
   			break
 			case 'sharevar':
 			  // someone is sending us a variant
-				Waka.memory.Search.findOne({variant: res.data._id, origin: Waka.c.id}, {}, function(search) {
+				Waka.mem.Search.findOne({variant: res.data._id, origin: Waka.c.id}, {}, function(search) {
 	        if (!search) return
-					Waka.memory.Search.remove(search._id, function() {
-						Waka.memory.Variants.upsert(res.data, function() {
+					Waka.mem.Search.remove(search._id, function() {
+						Waka.mem.Variants.upsert(res.data, function() {
 							Waka.Templates.Article.showVariants()
 						})
 					})

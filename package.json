@@ -19,7 +19,8 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node concat-templates.js; browserify waka.js -o output/bundle.js; uglifyjs output/bundle.js -o output/bundle.min.js --compress; node server.js"
+    "install": "browserify waka.js -o build/waka.js; uglifyjs build/waka.js -o build/waka.min.js --compress;",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
