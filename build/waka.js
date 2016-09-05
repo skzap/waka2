@@ -3,7 +3,7 @@ var Hashes = require('jshashes')
 
 var exports = module.exports = {
   Hash: function(title, content) {
-    var hash = new Hashes.MD5().hex(title+content)
+    var hash = new Hashes.MD5().hex(title+JSON.stringify(content))
     return {
       _id: hash,
       title: title,
@@ -13,7 +13,7 @@ var exports = module.exports = {
   Get: function(title, cb) {
     var re = new RegExp("^"+title+"$", 'i');
     Waka.db.Articles.findOne({title: re},{},function(match) {
-      if (!match) cb('Not found', null)
+      if (!match) { cb('Not found', null); return;}
       cb(null, match)
     })
   },
@@ -24,16 +24,14 @@ var exports = module.exports = {
         // maybe add to variants in memory
         Waka.db.Articles.remove(match._id)
       }
-      Waka.db.Articles.upsert(Waka.api.Hash(title,content), function() {
-        // returns true is content was overwritten
-        cb(null, match);
+      Waka.db.Articles.upsert(Waka.api.Hash(title,content), function(triplet) {
+        // broadcasting our new hash for this article
+        Waka.c.broadcast({
+          c: 'indexchange',
+          data: {_id: triplet._id, title: triplet.title}
+        })
+        cb(null, {match:match, triplet: triplet});
       })
-    })
-
-    // broadcasting our new hash for this article
-    Waka.c.broadcast({
-      c: 'indexchange',
-      data: {_id: article._id, title: title}
     })
   },
   Search: function(title, hash) {
@@ -67,7 +65,6 @@ var exports = module.exports = {
 
 },{"jshashes":10}],2:[function(require,module,exports){
 module.exports={
-	"DefaultArticle": "Wakapedia",
 	"PeerServer": {
 		"host": "127.0.0.1",
 		"port": 3000,
