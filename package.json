@@ -1,10 +1,11 @@
 {
   "name": "wakajs",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "",
   "main": "waka.js",
   "dependencies": {
     "browserify": "^13.0.1",
+    "event-emitter": "^0.3.4",
     "express": "^4.14.0",
     "jshashes": "^1.0.5",
     "minimongo": "^3.8.2",

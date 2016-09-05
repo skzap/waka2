@@ -1,6 +1,9 @@
 var Hashes = require('jshashes')
+var ee = require('event-emitter')
 
-var exports = module.exports = {
+var API = {
+  Emitter: ee({}),
+  Listener: null,
   Hash: function(title, content) {
     var hash = new Hashes.MD5().hex(title+JSON.stringify(content))
     return {
@@ -61,3 +64,17 @@ var exports = module.exports = {
     })
   }
 };
+
+// Events
+// API.Emitter.on('connected', API.Listener = function(){
+//   console.log('connected');
+// })
+// API.Emitter.on('peerchange', API.Listener = function(){
+//   console.log('peerchange');
+// })
+// API.Emitter.on('newshare', API.Listener = function(args){
+//   console.log('newshare',args);
+// })
+
+
+var exports = module.exports = API;

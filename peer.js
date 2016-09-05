@@ -1,6 +1,6 @@
 // connecting to network and adding a bunch of peers
 Waka.c.on('open', function(id) {
-	//Waka.Templates.Network.set('myId', Waka.c.id)
+	Waka.api.Emitter.emit('connected');
 	Waka.c.listAllPeers(function(p) {
 		for (var i = 0; i < p.length && i < 50; i++) {
 			if (Waka.c.id != p[i])
@@ -30,7 +30,7 @@ Waka.c.messageToPeer = function(peerId, message) {
 
 function savePeer(id, index) {
   Waka.mem.Peers.upsert({_id: id, index: index})
-  //Waka.Templates.Network.refresh()
+	Waka.api.Emitter.emit('peerchange');
 }
 
 function updateIndex(id, indexRow) {
@@ -44,13 +44,13 @@ function updateIndex(id, indexRow) {
 	}
 	if (!updated) {
 		Waka.mem.Peers.items[id].index.push(indexRow)
-		//Waka.Templates.Network.refresh()
+		Waka.api.Emitter.emit('peerchange');
 	}
 }
 
 function deletePeer(id) {
   Waka.mem.Peers.remove(id)
-  //Waka.Templates.Network.refresh()
+	Waka.api.Emitter.emit('peerchange');
 }
 
 function handshakePeer(conn) {
@@ -145,8 +145,8 @@ function handshakePeer(conn) {
 										console.log('Non-matching hash transmitted')
 										return
 									}
-									Waka.api.Set(res.data.title, res.data.content, function() {
-										//Waka.Templates.Article.refreshArticleTemplate(res.data)
+									Waka.api.Set(res.data.title, res.data.content, function(e, r) {
+										Waka.api.Emitter.emit('newshare', r.triplet);
 									})
 								}	else {
 									Waka.mem.Variants.upsert(res.data, function() {
@@ -164,7 +164,7 @@ function handshakePeer(conn) {
 	        if (!search) return
 					Waka.mem.Search.remove(search._id, function() {
 						Waka.mem.Variants.upsert(res.data, function() {
-							Waka.Templates.Article.showVariants()
+							// Waka.Templates.Article.showVariants()
 						})
 					})
 	      })
