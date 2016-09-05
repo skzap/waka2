@@ -163,8 +163,8 @@ function handshakePeer(conn) {
 				Waka.mem.Search.findOne({variant: res.data._id, origin: Waka.c.id}, {}, function(search) {
 	        if (!search) return
 					Waka.mem.Search.remove(search._id, function() {
-						Waka.mem.Variants.upsert(res.data, function() {
-							// Waka.Templates.Article.showVariants()
+						Waka.mem.Variants.upsert(res.data, function(res) {
+							Waka.api.Emitter.emit('newsharevar', res);
 						})
 					})
 	      })
