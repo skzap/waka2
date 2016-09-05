@@ -2,7 +2,7 @@ var Hashes = require('jshashes')
 
 var exports = module.exports = {
   Hash: function(title, content) {
-    var hash = new Hashes.MD5().hex(title+content)
+    var hash = new Hashes.MD5().hex(title+JSON.stringify(content))
     return {
       _id: hash,
       title: title,
