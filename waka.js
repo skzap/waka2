@@ -7,7 +7,7 @@ var WakaConfig = require('./config.json')
 Waka = {
   connect: function(options) {
     if (!options) options=WakaConfig.PeerServer
-    Waka.c = new Peer(WakaConfig.PeerServer)
+    Waka.c = new Peer(options)
     // loading peer protocol
     require('./peer.js')
   },
