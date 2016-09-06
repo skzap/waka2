@@ -5,6 +5,12 @@ var Peer = require('peerjs')
 var WakaConfig = require('./config.json')
 
 Waka = {
+  connect: function(options) {
+    if (!options) options=WakaConfig.PeerServer
+    Waka.c = new Peer(WakaConfig.PeerServer)
+    // loading peer protocol
+    require('./peer.js')
+  },
   db: new IndexedDb({namespace: 'waka'}),
   mem: new LocalDb()
 }
@@ -15,8 +21,8 @@ Waka.mem.addCollection('Search')
 Waka.mem.addCollection('Variants')
 
 // connecting to signalling server
-Waka.c = new Peer(WakaConfig.PeerServer)
-// loading peer protocol
-require('./peer.js')
+Waka.c = null;
 // adding api
 Waka.api = require('./api.js')
+
+var exports = module.exports = Waka;

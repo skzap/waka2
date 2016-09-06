@@ -33389,11 +33389,11 @@ function updateIndex(id, indexRow) {
 		if (Waka.mem.Peers.items[id].index[i].title == indexRow.title) {
 			Waka.mem.Peers.items[id].index[i]._id = indexRow._id
 			updated = true
+			Waka.api.Emitter.emit('peerchange');
 		}
 	}
 	if (!updated) {
 		Waka.mem.Peers.items[id].index.push(indexRow)
-		Waka.api.Emitter.emit('peerchange');
 	}
 }
 
@@ -33534,6 +33534,12 @@ var Peer = require('peerjs')
 var WakaConfig = require('./config.json')
 
 Waka = {
+  connect: function(options) {
+    if (!options) options=WakaConfig.PeerServer
+    Waka.c = new Peer(WakaConfig.PeerServer)
+    // loading peer protocol
+    require('./peer.js')
+  },
   db: new IndexedDb({namespace: 'waka'}),
   mem: new LocalDb()
 }
@@ -33544,10 +33550,10 @@ Waka.mem.addCollection('Search')
 Waka.mem.addCollection('Variants')
 
 // connecting to signalling server
-Waka.c = new Peer(WakaConfig.PeerServer)
-// loading peer protocol
-require('./peer.js')
+Waka.c = null;
 // adding api
 Waka.api = require('./api.js')
+
+var exports = module.exports = Waka;
 
 },{"./api.js":1,"./config.json":2,"./peer.js":48,"minimongo":27,"peerjs":42}]},{},[49]);

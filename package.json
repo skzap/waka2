@@ -1,6 +1,6 @@
 {
   "name": "wakajs",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "",
   "main": "waka.js",
   "dependencies": {
@@ -16,8 +16,7 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "install": "browserify waka.js -o build/waka.js; uglifyjs build/waka.js -o build/waka.min.js --compress;",
-    "start": "node server.js"
+    "start": "browserify waka.js -o build/waka.js; uglifyjs build/waka.js -o build/waka.min.js --compress; node server.js"
   },
   "repository": {
     "type": "git",
