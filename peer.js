@@ -40,12 +40,12 @@ function updateIndex(id, indexRow) {
 		if (Waka.mem.Peers.items[id].index[i].title == indexRow.title) {
 			Waka.mem.Peers.items[id].index[i]._id = indexRow._id
 			updated = true
-			Waka.api.Emitter.emit('peerchange');
 		}
 	}
 	if (!updated) {
 		Waka.mem.Peers.items[id].index.push(indexRow)
 	}
+	Waka.api.Emitter.emit('peerchange');
 }
 
 function deletePeer(id) {
