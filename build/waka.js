@@ -13,6 +13,15 @@ var API = {
       content: content
     }
   },
+  HashTime: function(title, content, time) {
+    var hash = new Hashes.MD5().hex(title+JSON.stringify(content)+JSON.stringify(time))
+    return {
+      _id: hash,
+      title: title,
+      content: content,
+      time: time
+    }
+  },
   Get: function(title, cb) {
     var re = new RegExp("^"+title+"$", 'i');
     Waka.db.Articles.findOne({title: re},{},function(match) {
@@ -20,22 +29,58 @@ var API = {
       cb(null, match)
     })
   },
-  Set: function(title, content, cb) {
+  Set: function(title, content, options, cb) {
     Waka.api.Get(title, function(e, match) {
       // ensuring uniqueness of title
       if (match) {
         // maybe add to variants in memory
         Waka.db.Articles.remove(match._id)
       }
-      Waka.db.Articles.upsert(Waka.api.Hash(title,content), function(triplet) {
-        // broadcasting our new hash for this article
-        Waka.c.broadcast({
-          c: 'indexchange',
-          data: {_id: triplet._id, title: triplet.title}
+      var time = null;
+      if (options.timestampAuthority) {
+        // first stamp the hash on the timestamp authority
+        Waka.api.Stamp(title, content, options.timestampAuthority, function(timestamp) {
+          var article = Waka.api.HashTime(title,content,timestamp)
+          Waka.api.Save(article, function(e,r) {
+            if (r) cb(null, {match: match, article: article})
+          })
         })
-        cb(null, {match:match, triplet: triplet});
-      })
+      } else {
+        var article = Waka.api.Hash(title,content)
+        Waka.api.Save(article, function(e,r) {
+          if (r) cb(null, {match: match, article: article})
+        })
+      }
     })
+  },
+  Save: function(article, cb) {
+    if (!article || !article._id || !article.title || !article.content) {
+      cb('invalid article')
+      return
+    }
+    Waka.db.Articles.upsert(article, function(article) {
+      // broadcasting our new hash for this article
+      Waka.c.broadcast({
+        c: 'indexchange',
+        data: {_id: article._id, title: article.title}
+      })
+      cb(null, true);
+    })
+  },
+  Stamp: function(title, content, timestampAuthority, cb) {
+    var hash = Waka.api.Hash(title, content)._id;
+    var url = "http://steemwhales.com:6060/time/request";
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        var result = JSON.parse(this.responseText)
+        result.method = 'STEEM'
+        cb(result)
+      }
+    };
+    xhttp.open("POST", url, true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp.send("hash="+hash);
   },
   Search: function(title, hash) {
     console.log('Searching for',title,hash)
@@ -33389,12 +33434,12 @@ function updateIndex(id, indexRow) {
 		if (Waka.mem.Peers.items[id].index[i].title == indexRow.title) {
 			Waka.mem.Peers.items[id].index[i]._id = indexRow._id
 			updated = true
-			Waka.api.Emitter.emit('peerchange');
 		}
 	}
 	if (!updated) {
 		Waka.mem.Peers.items[id].index.push(indexRow)
 	}
+	Waka.api.Emitter.emit('peerchange');
 }
 
 function deletePeer(id) {
@@ -33484,21 +33529,25 @@ function handshakePeer(conn) {
   			break
   		case 'share':
 			  // someone is sending us an article
-				var re = new RegExp("^"+res.data.title+"$", 'i');
+        var art = res.data
+				var re = new RegExp("^"+art.title+"$", 'i');
         Waka.mem.Search.findOne({title: re, origin: Waka.c.id}, {}, function(match) {
           if (match) {
 						Waka.mem.Search.remove(match._id, function() {
 							Waka.db.Articles.findOne({title: re},{},function(matchA) {
 								if (!matchA) {
-									if (res.data._id !== Waka.api.Hash(res.data.title, res.data.content)._id){
-										console.log('Non-matching hash transmitted')
+                  // ensuring hash integrity before copying content
+                  console.log(art, Waka.api.Hash(art.title, art.content))
+                  if ((art.time && Waka.api.HashTime(art.title, art.content, art.time)._id !== art._id)
+                      || (!art.time && Waka.api.Hash(art.title, art.content)._id !== art._id)) {
+                    console.log('Non-matching hash transmitted')
 										return
-									}
-									Waka.api.Set(res.data.title, res.data.content, function(e, r) {
-										Waka.api.Emitter.emit('newshare', r.triplet);
+                  }
+									Waka.api.Save(art, function(e, r) {
+										Waka.api.Emitter.emit('newshare', art);
 									})
 								}	else {
-									Waka.mem.Variants.upsert(res.data, function() {
+									Waka.mem.Variants.upsert(art, function() {
 
 									})
 								}
@@ -33536,7 +33585,7 @@ var WakaConfig = require('./config.json')
 Waka = {
   connect: function(options) {
     if (!options) options=WakaConfig.PeerServer
-    Waka.c = new Peer(WakaConfig.PeerServer)
+    Waka.c = new Peer(options)
     // loading peer protocol
     require('./peer.js')
   },
