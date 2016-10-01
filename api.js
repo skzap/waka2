@@ -12,6 +12,15 @@ var API = {
       content: content
     }
   },
+  HashTime: function(title, content, time) {
+    var hash = new Hashes.MD5().hex(title+JSON.stringify(content)+JSON.stringify(time))
+    return {
+      _id: hash,
+      title: title,
+      content: content,
+      time: time
+    }
+  },
   Get: function(title, cb) {
     var re = new RegExp("^"+title+"$", 'i');
     Waka.db.Articles.findOne({title: re},{},function(match) {
@@ -19,22 +28,58 @@ var API = {
       cb(null, match)
     })
   },
-  Set: function(title, content, cb) {
+  Set: function(title, content, options, cb) {
     Waka.api.Get(title, function(e, match) {
       // ensuring uniqueness of title
       if (match) {
         // maybe add to variants in memory
         Waka.db.Articles.remove(match._id)
       }
-      Waka.db.Articles.upsert(Waka.api.Hash(title,content), function(triplet) {
-        // broadcasting our new hash for this article
-        Waka.c.broadcast({
-          c: 'indexchange',
-          data: {_id: triplet._id, title: triplet.title}
+      var time = null;
+      if (options.timestampAuthority) {
+        // first stamp the hash on the timestamp authority
+        Waka.api.Stamp(title, content, options.timestampAuthority, function(timestamp) {
+          var article = Waka.api.HashTime(title,content,timestamp)
+          Waka.api.Save(article, function(e,r) {
+            if (r) cb(null, {match: match, article: article})
+          })
         })
-        cb(null, {match:match, triplet: triplet});
-      })
+      } else {
+        var article = Waka.api.Hash(title,content)
+        Waka.api.Save(article, function(e,r) {
+          if (r) cb(null, {match: match, article: article})
+        })
+      }
     })
+  },
+  Save: function(article, cb) {
+    if (!article || !article._id || !article.title || !article.content) {
+      cb('invalid article')
+      return
+    }
+    Waka.db.Articles.upsert(article, function(article) {
+      // broadcasting our new hash for this article
+      Waka.c.broadcast({
+        c: 'indexchange',
+        data: {_id: article._id, title: article.title}
+      })
+      cb(null, true);
+    })
+  },
+  Stamp: function(title, content, timestampAuthority, cb) {
+    var hash = Waka.api.Hash(title, content)._id;
+    var url = "http://steemwhales.com:6060/time/request";
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        var result = JSON.parse(this.responseText)
+        result.method = 'STEEM'
+        cb(result)
+      }
+    };
+    xhttp.open("POST", url, true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp.send("hash="+hash);
   },
   Search: function(title, hash) {
     console.log('Searching for',title,hash)

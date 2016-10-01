@@ -135,21 +135,25 @@ function handshakePeer(conn) {
   			break
   		case 'share':
 			  // someone is sending us an article
-				var re = new RegExp("^"+res.data.title+"$", 'i');
+        var art = res.data
+				var re = new RegExp("^"+art.title+"$", 'i');
         Waka.mem.Search.findOne({title: re, origin: Waka.c.id}, {}, function(match) {
           if (match) {
 						Waka.mem.Search.remove(match._id, function() {
 							Waka.db.Articles.findOne({title: re},{},function(matchA) {
 								if (!matchA) {
-									if (res.data._id !== Waka.api.Hash(res.data.title, res.data.content)._id){
-										console.log('Non-matching hash transmitted')
+                  // ensuring hash integrity before copying content
+                  console.log(art, Waka.api.Hash(art.title, art.content))
+                  if ((art.time && Waka.api.HashTime(art.title, art.content, art.time)._id !== art._id)
+                      || (!art.time && Waka.api.Hash(art.title, art.content)._id !== art._id)) {
+                    console.log('Non-matching hash transmitted')
 										return
-									}
-									Waka.api.Set(res.data.title, res.data.content, function(e, r) {
-										Waka.api.Emitter.emit('newshare', r.triplet);
+                  }
+									Waka.api.Save(art, function(e, r) {
+										Waka.api.Emitter.emit('newshare', art);
 									})
 								}	else {
-									Waka.mem.Variants.upsert(res.data, function() {
+									Waka.mem.Variants.upsert(art, function() {
 
 									})
 								}
