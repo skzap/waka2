@@ -143,9 +143,7 @@ function handshakePeer(conn) {
 							Waka.db.Articles.findOne({title: re},{},function(matchA) {
 								if (!matchA) {
                   // ensuring hash integrity before copying content
-                  console.log(art, Waka.api.Hash(art.title, art.content))
-                  if ((art.time && Waka.api.HashTime(art.title, art.content, art.time)._id !== art._id)
-                      || (!art.time && Waka.api.Hash(art.title, art.content)._id !== art._id)) {
+                  if (Waka.api.NewHash(art.title, art.content, art.signature, art.time)._id !== art._id) {
                     console.log('Non-matching hash transmitted')
 										return
                   }

@@ -4,6 +4,15 @@ var ee = require('event-emitter')
 var API = {
   Emitter: ee({}),
   Listener: null,
+  NewHash: function(title, content, signature, time) {
+    var article = {}
+    if (title) article.title = title
+    if (content) article.content = content
+    if (signature) article.signature = signature
+    if (time) article.time = time
+    article._id = new Hashes.MD5().hex(JSON.stringify(content))
+    return article
+  },
   Hash: function(title, content) {
     var hash = new Hashes.MD5().hex(title+JSON.stringify(content))
     return {
@@ -35,17 +44,24 @@ var API = {
         // maybe add to variants in memory
         Waka.db.Articles.remove(match._id)
       }
-      var time = null;
+
+      // options to sign a content with a previously generated keyPair
+      var signature = null
+      if (options.signKeyPair) {
+        signature = Waka.crypto.GetSignature({title: title, content: content}, options.signKeyPair.secretKey)
+      }
+
+      // option for secure timestamp to verify the date at which a content existed
       if (options.timestampAuthority) {
         // first stamp the hash on the timestamp authority
         Waka.api.Stamp(title, content, options.timestampAuthority, function(timestamp) {
-          var article = Waka.api.HashTime(title,content,timestamp)
+          var article = Waka.api.NewHash(title, content, signature, timestamp)
           Waka.api.Save(article, function(e,r) {
             if (r) cb(null, {match: match, article: article})
           })
         })
       } else {
-        var article = Waka.api.Hash(title,content)
+        var article = Waka.api.NewHash(title, content, signature)
         Waka.api.Save(article, function(e,r) {
           if (r) cb(null, {match: match, article: article})
         })

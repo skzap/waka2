@@ -16,6 +16,7 @@ Waka = {
 }
 
 Waka.db.addCollection('Articles')
+Waka.db.addCollection('Keys')
 Waka.mem.addCollection('Peers')
 Waka.mem.addCollection('Search')
 Waka.mem.addCollection('Variants')
@@ -24,5 +25,6 @@ Waka.mem.addCollection('Variants')
 Waka.c = null;
 // adding api
 Waka.api = require('./api.js')
+Waka.crypto = require('./crypto.js')
 
 var exports = module.exports = Waka;
