@@ -1,3 +1,4 @@
+var FileSaver = require('file-saver');
 var nacl = require('tweetnacl')
 nacl.util = require('tweetnacl-util');
 
@@ -27,6 +28,19 @@ var crypto = {
     content = JSON.stringify(content)
     content = nacl.util.decodeUTF8(content)
     return nacl.sign.detached.verify(content, signature, publicKey)
+  },
+  ExportKeys: function() {
+    Waka.db.Keys.find({},{}).fetch(function(keys) {
+      var json = JSON.stringify(keys)
+      var blob = new Blob([json], {type: "text/plain;charset=utf-8"})
+      FileSaver.saveAs(blob, "keys.txt")
+    })
+  },
+  ImportKeys: function(json) {
+    var keys = JSON.parse(json)
+    for (var i = 0; i < keys.length; i++) {
+      Waka.db.Keys.upsert(keys[i], function(keyPair) {})
+    }
   }
 }
 
