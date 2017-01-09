@@ -10,7 +10,7 @@ var API = {
     if (content) article.content = content
     if (signature) article.signature = signature
     if (time) article.time = time
-    article._id = new Hashes.MD5().hex(JSON.stringify(content))
+    article._id = new Hashes.MD5().hex(JSON.stringify(article))
     return article
   },
   Hash: function(title, content) {
@@ -54,7 +54,7 @@ var API = {
       // option for secure timestamp to verify the date at which a content existed
       if (options.timestampAuthority) {
         // first stamp the hash on the timestamp authority
-        Waka.api.Stamp(title, content, options.timestampAuthority, function(timestamp) {
+        Waka.api.Stamp(title, content, signature, options.timestampAuthority, function(timestamp) {
           var article = Waka.api.NewHash(title, content, signature, timestamp)
           Waka.api.Save(article, function(e,r) {
             if (r) cb(null, {match: match, article: article})
@@ -82,8 +82,8 @@ var API = {
       cb(null, true);
     })
   },
-  Stamp: function(title, content, timestampAuthority, cb) {
-    var hash = Waka.api.Hash(title, content)._id;
+  Stamp: function(title, content, signature, timestampAuthority, cb) {
+    var hash = Waka.api.NewHash(title, content, signature)._id;
     var url = "http://steemwhales.com:6060/time/request";
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
