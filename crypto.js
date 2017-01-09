@@ -22,7 +22,9 @@ var crypto = {
   GetSignature: function(content, secretKey) {
     content = JSON.stringify(content)
     content = nacl.util.decodeUTF8(content)
-    return nacl.sign.detached(content, secretKey)
+    var signature = nacl.sign.detached(content, secretKey)
+    var signatureBase64 = nacl.util.encodeBase64(signature)
+    return signatureBase64
   },
   VerifyContentSignature: function(content, signature, publicKey) {
     content = JSON.stringify(content)
