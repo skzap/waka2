@@ -48,7 +48,10 @@ var API = {
       // options to sign a content with a previously generated keyPair
       var signature = null
       if (options.signKeyPair) {
-        signature = Waka.crypto.GetSignature({title: title, content: content}, options.signKeyPair.secretKey)
+        signature = {
+          pubKey: options.signKeyPair.publicKeyBase64,
+          base64: Waka.crypto.GetSignature({title: title, content: content}, options.signKeyPair.secretKey)
+        }
       }
 
       // option for secure timestamp to verify the date at which a content existed
