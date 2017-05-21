@@ -96,8 +96,8 @@ function handshakePeer(conn) {
 				Waka.mem.Search.findOne({title: res.data.title, origin: res.data.origin}, {}, function(match) {
 					if (!match) {
 						// we havent processed this search yet, doing so now
-						var re = new RegExp("^"+res.data.title+"$", 'i');
-						Waka.db.Articles.findOne({title: re},{}, function(art) {
+						//var re = new RegExp("^"+res.data.title+"$", 'i');
+						Waka.db.Articles.findOne({title: res.data.title},{}, function(art) {
 							if (!art) {
 								Waka.mem.Search.upsert({title: res.data.title, origin: res.data.origin})
 								// not in our database, looking into our peer index
