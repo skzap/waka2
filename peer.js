@@ -136,8 +136,8 @@ function handshakePeer(conn) {
   		case 'share':
 			  // someone is sending us an article
         var art = res.data
-				var re = new RegExp("^"+art.title+"$", 'i');
-        Waka.mem.Search.findOne({title: re, origin: Waka.c.id}, {}, function(match) {
+				//var re = new RegExp("^"+art.title+"$", 'i');
+        Waka.mem.Search.findOne({title: art.title, origin: Waka.c.id}, {}, function(match) {
           if (match) {
 						Waka.mem.Search.remove(match._id, function() {
 							Waka.db.Articles.findOne({title: re},{},function(matchA) {
