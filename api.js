@@ -4,41 +4,37 @@ var ee = require('event-emitter')
 var API = {
   Emitter: ee({}),
   Listener: null,
-  NewHash: function(title, content, signature, time) {
-    var article = {}
-    if (title) article.title = title
-    if (content) article.content = content
+  NewHash: function(article, signature, time) {
     if (signature) article.signature = signature
     if (time) article.time = time
     article._id = new Hashes.MD5().hex(JSON.stringify(article))
     return article
   },
-  Hash: function(title, content) {
-    var hash = new Hashes.MD5().hex(title+JSON.stringify(content))
-    return {
-      _id: hash,
-      title: title,
-      content: content
-    }
-  },
-  HashTime: function(title, content, time) {
-    var hash = new Hashes.MD5().hex(title+JSON.stringify(content)+JSON.stringify(time))
-    return {
-      _id: hash,
-      title: title,
-      content: content,
-      time: time
-    }
-  },
+  // Hash: function(title, content) {
+  //   var hash = new Hashes.MD5().hex(title+JSON.stringify(content))
+  //   return {
+  //     _id: hash,
+  //     title: title,
+  //     content: content
+  //   }
+  // },
+  // HashTime: function(title, content, time) {
+  //   var hash = new Hashes.MD5().hex(title+JSON.stringify(content)+JSON.stringify(time))
+  //   return {
+  //     _id: hash,
+  //     title: title,
+  //     content: content,
+  //     time: time
+  //   }
+  // },
   Get: function(title, cb) {
-    var re = new RegExp("^"+title+"$", 'i');
-    Waka.db.Articles.findOne({title: re},{},function(match) {
+    Waka.db.Articles.findOne({'info.title': title},{},function(match) {
       if (!match) { cb('Not found', null); return;}
       cb(null, match)
     })
   },
-  Set: function(title, content, options, cb) {
-    Waka.api.Get(title, function(e, match) {
+  Set: function(article, options, cb) {
+    Waka.api.Get(article.info.title, function(e, match) {
       // ensuring uniqueness of title
       if (match) {
         // maybe add to variants in memory
@@ -50,29 +46,29 @@ var API = {
       if (options.signKeyPair) {
         signature = {
           pubKey: options.signKeyPair.publicKeyBase64,
-          base64: Waka.crypto.GetSignature({title: title, content: content}, options.signKeyPair.secretKey)
+          base64: Waka.crypto.GetSignature(article, options.signKeyPair.secretKey)
         }
       }
 
       // option for secure timestamp to verify the date at which a content existed
       if (options.timestampAuthority) {
         // first stamp the hash on the timestamp authority
-        Waka.api.Stamp(title, content, signature, options.timestampAuthority, function(timestamp) {
-          var article = Waka.api.NewHash(title, content, signature, timestamp)
+        Waka.api.Stamp(article, signature, options.timestampAuthority, function(timestamp) {
+          var article = Waka.api.NewHash(article, signature, timestamp)
           Waka.api.Save(article, function(e,r) {
             if (r) cb(null, {match: match, article: article})
           })
         })
       } else {
-        var article = Waka.api.NewHash(title, content, signature)
-        Waka.api.Save(article, function(e,r) {
+        var validArticle = Waka.api.NewHash(article, signature)
+        Waka.api.Save(validArticle, function(e,r) {
           if (r) cb(null, {match: match, article: article})
         })
       }
     })
   },
   Save: function(article, cb) {
-    if (!article || !article._id || !article.title || !article.content) {
+    if (!article || !article._id || !article.info || !article.info.title || !article.content) {
       cb('invalid article')
       return
     }
@@ -80,13 +76,13 @@ var API = {
       // broadcasting our new hash for this article
       Waka.c.broadcast({
         c: 'indexchange',
-        data: {_id: article._id, title: article.title}
+        data: {_id: article._id, info: article.info}
       })
       cb(null, true);
     })
   },
-  Stamp: function(title, content, signature, timestampAuthority, cb) {
-    var hash = Waka.api.NewHash(title, content, signature)._id;
+  Stamp: function(article, signature, timestampAuthority, cb) {
+    var hash = Waka.api.NewHash(article, signature)._id;
     var url = "http://steemwhales.com:6060/time/request";
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
@@ -100,8 +96,8 @@ var API = {
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send("hash="+hash);
   },
-  Search: function(title, hash) {
-    console.log('Searching for',title,hash)
+  Search: function(title) {
+    console.log('Searching',title)
 
     // deletes all previous searches for this user? why ??
     Waka.mem.Search.find({origin: Waka.c.id},{}).fetch(function(s) {
@@ -111,8 +107,7 @@ var API = {
     })
 
     var search = {
-      title: title,
-      hash: hash,
+      info: {title: title},
       origin: Waka.c.id,
       echo: 2
     }
@@ -123,7 +118,7 @@ var API = {
     })
   },
   Index: function(cb) {
-    Waka.db.Articles.find({},{fields: {_id:1, title: 1}}).fetch(function(res){
+    Waka.db.Articles.find({},{fields: {_id:1, info: 1}}).fetch(function(res){
       cb(null, res)
     })
   }

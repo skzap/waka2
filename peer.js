@@ -37,7 +37,7 @@ function updateIndex(id, indexRow) {
 	if (!Waka.mem.Peers || !Waka.mem.Peers.items || !Waka.mem.Peers.items[id].index) return false
 	var updated = false
 	for (var i = 0; i < Waka.mem.Peers.items[id].index.length; i++) {
-		if (Waka.mem.Peers.items[id].index[i].title == indexRow.title) {
+		if (Waka.mem.Peers.items[id].index[i].info.title == indexRow.info.title) {
 			Waka.mem.Peers.items[id].index[i]._id = indexRow._id
 			updated = true
 		}
@@ -60,7 +60,7 @@ function handshakePeer(conn) {
     })
 
 		// send our indexes to our peers as handshake
-    Waka.db.Articles.find({},{fields: {_id:1, title: 1}}).fetch(function(res){
+    Waka.db.Articles.find({},{fields: {_id:1, info: 1}}).fetch(function(res){
       conn.send({c:'index', data:res})
     })
 	})
@@ -78,8 +78,8 @@ function handshakePeer(conn) {
 				Waka.mem.Search.findOne({origin: Waka.c.id}, {}, function(search) {
 					if (!search) return
 					for (var i = 0; i < res.data.length; i++) {
-						if (res.data[i].title == search.title) {
-							Waka.c.messageToPeer(conn.peer, {c:'search', data: {title:search.title, origin:Waka.c.id} })
+						if (res.data[i].info.title == search.info.title) {
+							Waka.c.messageToPeer(conn.peer, {c:'search', data: {info: {title:search.title}, origin:Waka.c.id} })
 						}
 					}
 				})
@@ -93,20 +93,20 @@ function handshakePeer(conn) {
   			break
   		case 'search':
 				// someone is searching
-				Waka.mem.Search.findOne({title: res.data.title, origin: res.data.origin}, {}, function(match) {
+				Waka.mem.Search.findOne({'info.title': res.data.info.title, origin: res.data.origin}, {}, function(match) {
 					if (!match) {
 						// we havent processed this search yet, doing so now
 						//var re = new RegExp("^"+res.data.title+"$", 'i');
-						Waka.db.Articles.findOne({title: res.data.title},{}, function(art) {
+						Waka.db.Articles.findOne({'info.title': res.data.info.title},{}, function(art) {
 							if (!art) {
-								Waka.mem.Search.upsert({title: res.data.title, origin: res.data.origin})
+								Waka.mem.Search.upsert({info: {title:res.data.title}, origin:res.data.origin})
 								// not in our database, looking into our peer index
 								Waka.mem.Peers.find({},{}).fetch(function(p){
 									var found = false
 							    for (var i = 0; i < p.length; i++) {
 										if (!p[i].index) continue
 										for (var y = 0; y < p[i].index.length; y++) {
-											if (p[i].index[y].title == res.data.title) {
+											if (p[i].index[y].info.title == res.data.info.title) {
 												// article found for peer p, forwarding search
 												Waka.c.messageToPeer(p[i]._id, res)
 												found = true
@@ -124,7 +124,7 @@ function handshakePeer(conn) {
 								Waka.mem.Peers.findOne({_id: res.data.origin},{}, function(peerMatch) {
 									if (!peerMatch) handshakePeer(Waka.c.connect(res.data.origin))
 									else {
-										Waka.mem.Search.upsert({title: res.data.title, origin: res.data.origin})
+										Waka.mem.Search.upsert({info: {title: res.data.title}, origin: res.data.origin})
 										Waka.c.messageToPeer(res.data.origin, {c:'share', data: art})
 									}
 								})
@@ -137,13 +137,13 @@ function handshakePeer(conn) {
 			  // someone is sending us an article
         var art = res.data
 				//var re = new RegExp("^"+art.title+"$", 'i');
-        Waka.mem.Search.findOne({title: art.title, origin: Waka.c.id}, {}, function(match) {
+        Waka.mem.Search.findOne({'info.title': art.info.title, origin: Waka.c.id}, {}, function(match) {
           if (match) {
 						Waka.mem.Search.remove(match._id, function() {
-							Waka.db.Articles.findOne({title: art.title},{},function(matchA) {
+							Waka.db.Articles.findOne({'info.title': art.info.title},{},function(matchA) {
 								if (!matchA) {
                   // ensuring hash integrity before copying content
-                  if (Waka.api.NewHash(art.title, art.content, art.signature, art.time)._id !== art._id) {
+                  if (Waka.api.NewHash(art.info, art.content, art.signature, art.time)._id !== art._id) {
                     console.log('Non-matching hash transmitted')
 										return
                   }
