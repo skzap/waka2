@@ -140,7 +140,7 @@ function handshakePeer(conn) {
         Waka.mem.Search.findOne({title: art.title, origin: Waka.c.id}, {}, function(match) {
           if (match) {
 						Waka.mem.Search.remove(match._id, function() {
-							Waka.db.Articles.findOne({title: re},{},function(matchA) {
+							Waka.db.Articles.findOne({title: art.title},{},function(matchA) {
 								if (!matchA) {
                   // ensuring hash integrity before copying content
                   if (Waka.api.NewHash(art.title, art.content, art.signature, art.time)._id !== art._id) {
