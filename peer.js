@@ -60,7 +60,7 @@ function handshakePeer(conn) {
     })
 
 		// send our indexes to our peers as handshake
-    Waka.db.Articles.find({},{fields: {_id:1, info: 1}}).fetch(function(res){
+		Waka.db.Articles.find({},{fields: {_id:1, info: 1}}).fetch(function(res){
       conn.send({c:'index', data:res})
     })
 	})
@@ -143,7 +143,7 @@ function handshakePeer(conn) {
 							Waka.db.Articles.findOne({'info.title': art.info.title},{},function(matchA) {
 								if (!matchA) {
                   // ensuring hash integrity before copying content
-                  if (Waka.api.NewHash(art.info, art.content, art.signature, art.time)._id !== art._id) {
+                  if (Waka.api.NewHash(art, art.signature, art.time)._id !== art._id) {
                     console.log('Non-matching hash transmitted')
 										return
                   }

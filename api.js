@@ -121,6 +121,18 @@ var API = {
     Waka.db.Articles.find({},{fields: {_id:1, info: 1}}).fetch(function(res){
       cb(null, res)
     })
+  },
+  DeleteFieldsWithDots: function(object) {
+    for (var key in object) {
+      if (key.indexOf('.') > -1) {
+        delete object[key]
+        continue
+      }
+      if (typeof object[key] === 'object') {
+        object[key] = this.DeleteFieldsWithDots(object[key])
+      }
+    }
+    return object
   }
 };
 
