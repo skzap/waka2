@@ -29,7 +29,7 @@ var API = {
   // },
   Get: function(title, cb) {
     Waka.db.Articles.findOne({'info.title': title},{},function(match) {
-      if (!match) { cb('Not found', null); return;}
+      if (!match) { cb('o Not found', null); return;}
       cb(null, match)
     })
   },
@@ -74,10 +74,10 @@ var API = {
     }
     Waka.db.Articles.upsert(article, function(article) {
       // broadcasting our new hash for this article
-      Waka.c.broadcast({
-        c: 'indexchange',
-        data: {_id: article._id, info: article.info}
-      })
+      if (Waka.c) Waka.c.broadcast({
+          c: 'indexchange',
+          data: {_id: article._id, info: article.info}
+        })
       cb(null, true);
     })
   },
